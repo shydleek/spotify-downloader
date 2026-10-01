@@ -1,12 +1,10 @@
-# --- Скопируй этот файл в config.py и впиши свои значения ---
+# Скопируй в config.py и впиши свои значения
 
-# Ключи из https://developer.spotify.com/dashboard
 SPOTIFY_CLIENT_ID = "вставь_сюда_свой_client_id"
 SPOTIFY_CLIENT_SECRET = "вставь_сюда_свой_client_secret"
 SPOTIFY_REDIRECT_URI = "http://127.0.0.1:8888/callback"
 
-# Куда складывать MP3
 DOWNLOAD_DIR = "downloads"
 
-# Браузер, где залогинен YouTube: 'chrome' | 'safari' | 'firefox' | 'edge' | 'brave'
-BROWSER_FOR_COOKIES = "chrome"
+# Путь к cookies.txt, экспортированному из Chrome
+COOKIES_FILE = "cookies.txt"

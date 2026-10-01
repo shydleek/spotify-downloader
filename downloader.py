@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import yt_dlp
@@ -11,15 +12,21 @@ try:
         SPOTIFY_CLIENT_SECRET,
         SPOTIFY_REDIRECT_URI,
         DOWNLOAD_DIR,
-        BROWSER_FOR_COOKIES,
+        COOKIES_FILE,
     )
 except ImportError:
     print("Ошибка: не найден файл config.py.")
     print("Скопируй config.example.py в config.py и впиши туда свои ключи Spotify.")
     sys.exit(1)
 
+# Где хранится токен авторизации Spotify
 CACHE_PATH = ".spotify_cache"
+
+# Права доступа у Spotify
 SCOPE = "playlist-read-private playlist-read-collaborative user-read-private user-read-email"
+
+# Определение ОС (для подсказок в консоли)
+IS_WINDOWS = platform.system() == "Windows"
 
 
 def get_spotify_client():
@@ -86,7 +93,7 @@ def search_youtube(query):
             'skip_download': True,
             'default_search': 'ytsearch1',
             'extract_flat': True,
-            'cookiesfrombrowser': (BROWSER_FOR_COOKIES,),
+            'cookiefile': COOKIES_FILE,
             'remote_components': ['ejs:github'],
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -115,8 +122,14 @@ def download_audio(youtube_url, output_dir):
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'cookiesfrombrowser': (BROWSER_FOR_COOKIES,),
+        'cookiefile': COOKIES_FILE,
         'remote_components': ['ejs:github'],
+        'socket_timeout': 60,
+        'retries': 10,
+        'fragment_retries': 10,
+        'retry_sleep_functions': {
+            'http': lambda n: min(4 ** n, 60),
+        },
         'extractor_args': {
             'youtube': {
                 'player_client': ['web_safari', 'web', 'web_embedded', 'tv'],
@@ -133,15 +146,28 @@ def download_audio(youtube_url, output_dir):
 
 def main():
     if len(sys.argv) < 2:
-        print("Использование: python downloader.py <ссылка_на_плейлист_spotify>")
+        print("Использование:")
+        if IS_WINDOWS:
+            print('  python downloader.py "https://open.spotify.com/playlist/..."')
+        else:
+            print('  python downloader.py "https://open.spotify.com/playlist/..."')
         return
 
     playlist_url = sys.argv[1]
 
-    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    print(f"Папка для загрузок: {os.path.abspath(DOWNLOAD_DIR)}")
+    # Проверяем наличие файла cookies
+    if not os.path.isfile(COOKIES_FILE):
+        print(f"Ошибка: файл cookies не найден: {os.path.abspath(COOKIES_FILE)}")
+        print("Экспортируй cookies из Chrome расширением 'Get cookies.txt LOCALLY'")
+        print("и положи файл рядом со скриптом под именем cookies.txt.")
+        return
 
-    print("Авторизация в Spotify...")
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    print(f"ОС: {platform.system()}")
+    print(f"Папка для загрузок: {os.path.abspath(DOWNLOAD_DIR)}")
+    print(f"Файл cookies: {os.path.abspath(COOKIES_FILE)}")
+
+    print("\nАвторизация в Spotify...")
     try:
         sp = get_spotify_client()
     except Exception as e:

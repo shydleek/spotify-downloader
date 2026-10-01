@@ -1,10 +1,8 @@
+cookies.txt
+config.py
+.spotify_cache
 venv/
 downloads/
-.spotify_cache
 __pycache__/
-*.pyc
-*.pyo
-config.py
-.env
-cookies.txt
 .DS_Store
+Thumbs.db
