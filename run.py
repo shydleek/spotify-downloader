@@ -1,7 +1,7 @@
 """
 Единая точка входа для Spotify Downloader.
 Сам создаёт venv, ставит зависимости и запускает downloader.py.
-Пользователю достаточно запустить: python run.py "ссылка_на_плейлист"
+Пользователю достаточно запустить: python run.py "путь_к_плейлисту.csv"
 """
 
 import os
@@ -18,14 +18,12 @@ IS_WINDOWS = platform.system() == "Windows"
 
 def print_header():
     print("=" * 60)
-    print("  Spotify Playlist Downloader")
+    print("  Spotify Playlist Downloader (via CSV)")
     print("=" * 60)
 
 
 def check_system_deps():
-    """Проверяет наличие ffmpeg и deno."""
     missing = []
-
     if not shutil.which("ffmpeg"):
         missing.append("ffmpeg")
     if not shutil.which("deno"):
@@ -43,17 +41,14 @@ def check_system_deps():
 
 
 def get_venv_python():
-    """Возвращает путь к python внутри venv."""
     if IS_WINDOWS:
         return VENV_DIR / "Scripts" / "python.exe"
     return VENV_DIR / "bin" / "python"
 
 
 def ensure_venv():
-    """Создаёт venv, если его нет."""
     if get_venv_python().exists():
         return
-
     print("\n📦 Первый запуск: создаю виртуальное окружение...")
     try:
         subprocess.run([sys.executable, "-m", "venv", str(VENV_DIR)], check=True)
@@ -63,12 +58,9 @@ def ensure_venv():
 
 
 def ensure_dependencies():
-    """Устанавливает зависимости из requirements.txt, если их нет."""
     venv_python = get_venv_python()
-
-    # Проверяем, установлены ли нужные пакеты
     check = subprocess.run(
-        [str(venv_python), "-c", "import spotipy, yt_dlp"],
+        [str(venv_python), "-c", "import yt_dlp"],
         capture_output=True,
     )
     if check.returncode == 0:
@@ -92,21 +84,18 @@ def ensure_dependencies():
 
 
 def ensure_config():
-    """Проверяет, что config.py создан, иначе даёт подсказку."""
     config_path = PROJECT_DIR / "config.py"
     if not config_path.exists():
         print("\n⚠️  Не найден config.py")
-        print("\nСкопируй шаблон и впиши свои ключи Spotify:")
+        print("\nСкопируй шаблон:")
         if IS_WINDOWS:
             print("  copy config.example.py config.py")
         else:
             print("  cp config.example.py config.py")
-        print("\nКлючи получить здесь: https://developer.spotify.com/dashboard")
         sys.exit(1)
 
 
 def ensure_cookies():
-    """Проверяет, что cookies.txt есть."""
     cookies_path = PROJECT_DIR / "cookies.txt"
     if not cookies_path.exists():
         print("\n⚠️  Не найден cookies.txt")
@@ -118,10 +107,8 @@ def ensure_cookies():
 
 
 def run_downloader(args):
-    """Запускает downloader.py с переданными аргументами."""
     venv_python = get_venv_python()
     downloader = PROJECT_DIR / "downloader.py"
-
     result = subprocess.run([str(venv_python), str(downloader)] + args)
     sys.exit(result.returncode)
 
@@ -132,11 +119,13 @@ def main():
     args = sys.argv[1:]
     if not args:
         print("\nИспользование:")
-        print('  python run.py "https://open.spotify.com/playlist/..."')
+        print('  python run.py "путь_к_плейлисту.csv"')
+        print("\nКак получить CSV:")
+        print("  • Через расширение 'Spotify Scraper' для Chrome")
+        print("  • Или на https://exportify.net/")
         print("\nПри первом запуске скрипт сам:")
         print("  • создаст виртуальное окружение")
         print("  • установит зависимости")
-        print("  • запросит авторизацию Spotify (откроется браузер)")
         sys.exit(0)
 
     check_system_deps()

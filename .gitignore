@@ -4,5 +4,8 @@ config.py
 venv/
 downloads/
 __pycache__/
+*.pyc
 .DS_Store
 Thumbs.db
+*.log
+*.csv

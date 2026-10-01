@@ -1,9 +1,3 @@
-# Скопируй в config.py и впиши свои значения
-
-SPOTIFY_CLIENT_ID = "вставь_сюда_свой_client_id"
-SPOTIFY_CLIENT_SECRET = "вставь_сюда_свой_client_secret"
-SPOTIFY_REDIRECT_URI = "http://127.0.0.1:8888/callback"
-
 DOWNLOAD_DIR = "downloads"
 
 # Путь к cookies.txt, экспортированному из Chrome
